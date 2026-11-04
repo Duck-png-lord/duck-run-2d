@@ -14,10 +14,29 @@
     { sky: "#202c67", far: "#455ca5", hill: "#304780", ground: "#222d57", edge: "#70dcff", accent: "#ff70b5", name: "Neon Night" },
     { sky: "#83e3bc", far: "#d2f0b5", hill: "#55ae87", ground: "#ba855e", edge: "#f1d29a", accent: "#ff6e78", name: "Mint Machine" }
   ];
-  const DEATH_QUOTES = ["The spikes say thanks for the visit.", "A bold jump. A short career.", "The duck has filed a complaint about your timing.", "Gravity remains undefeated. For now.", "That landing was more of a suggestion.", "The course saw that coming. Next time, surprise it.", "The duck believes in you. The floor does not.", "The gap won this round. Rematch?", "At least the respawn is quick."];
-  const WELL_DONE = ["Well done! The duck is doing a tiny victory dance.", "Clean landing, champion. You earned that quack.", "Course conquered! Your timing was egg-cellent.", "The spikes are jealous. Lovely run!", "Duck approved. You earned that win.", "That finish was worth every retry.", "Victory! Somewhere, a tiny duck is cheering for you."];
+  const DEATH_QUOTES = [
+    "The spikes say thanks for the visit.",
+    "A bold jump. A short career.",
+    "The duck has filed a complaint about your timing.",
+    "Gravity remains undefeated. For now.",
+    "That landing was more of a suggestion.",
+    "The course saw that coming. Next time, surprise it.",
+    "The duck believes in you. The floor does not.",
+    "The gap won this round. Rematch?",
+    "At least the respawn is quick."
+  ];
+  const WELL_DONE = [
+    "Well done! The duck is doing a tiny victory dance.",
+    "Clean landing, champion. You earned that quack.",
+    "Course conquered! Your timing was egg-cellent.",
+    "The spikes are jealous. Lovely run!",
+    "Duck approved. You earned that win.",
+    "That finish was worth every retry.",
+    "Victory! Somewhere, a tiny duck is cheering for you."
+  ];
   const EMPTY_SAVE = { version: 1, wins: 0, rageQuits: 0, totalDeaths: 0, courses: NAMES.map(() => ({ wins: 0, deaths: 0 })) };
 
+  const clone = (value) => (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
   let save = readSave();
   let state = "menu", practice = false, soundOn = true, audio = null;
   let level = null, course = 0, cameraX = 0, deathsThisRun = 0, checkpointIndex = 0;
@@ -32,14 +51,28 @@
   function readSave() {
     try {
       const data = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-      if (!data) return structuredClone(EMPTY_SAVE);
-      return { version: 1, wins: Math.max(0, Number(data.wins) || 0), rageQuits: Math.max(0, Number(data.rageQuits) || 0), totalDeaths: Math.max(0, Number(data.totalDeaths) || 0), courses: NAMES.map((_, i) => ({ wins: Math.max(0, Number(data.courses?.[i]?.wins) || 0), deaths: Math.max(0, Number(data.courses?.[i]?.deaths) || 0) })) };
-    } catch { return structuredClone(EMPTY_SAVE); }
+      if (!data) return clone(EMPTY_SAVE);
+      return {
+        version: 1,
+        wins: Math.max(0, Number(data.wins) || 0),
+        rageQuits: Math.max(0, Number(data.rageQuits) || 0),
+        totalDeaths: Math.max(0, Number(data.totalDeaths) || 0),
+        courses: NAMES.map((_, i) => ({
+          wins: Math.max(0, Number(data.courses?.[i]?.wins) || 0),
+          deaths: Math.max(0, Number(data.courses?.[i]?.deaths) || 0)
+        }))
+      };
+    } catch {
+      return clone(EMPTY_SAVE);
+    }
   }
+
   function writeSave() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch (_) { showToast("Could not save in this browser. Export a backup."); }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); }
+    catch { showToast("Could not save in this browser. Export a backup."); }
     updateStats();
   }
+
   function updateStats() {
     $("#statWins").textContent = $("#sideWins").textContent = save.wins;
     $("#statRageQuits").textContent = $("#sideRageQuits").textContent = save.rageQuits;
@@ -47,24 +80,25 @@
     save.courses.forEach((v, i) => { $("#courseDeaths" + i).textContent = v.deaths; });
     $("#levelDeaths").textContent = deathsThisRun;
   }
+
   function showToast(message, duration = 1700) {
     const el = $("#toast"); el.textContent = message; el.classList.add("show"); toastTime = duration / 1000;
   }
+
   function ensureAudio() {
     if (!soundOn) return;
-    try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch (_) { audio = null; }
-  }
-  function beep(freq, duration = .09, type = "triangle", volume = .04, slide = 0) {
-    if (!soundOn) return; ensureAudio(); if (!audio) return;
-    const now = audio.currentTime, osc = audio.createOscillator(), gain = audio.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, now);
-    if (slide) osc.frequency.exponentialRampToValueAtTime(slide, now + duration);
-    gain.gain.setValueAtTime(volume, now); gain.gain.exponentialRampToValueAtTime(.001, now + duration);
-    osc.connect(gain); gain.connect(audio.destination); osc.start(now); osc.stop(now + duration);
+    try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch { audio = null; }
   }
 
-  // Generate only single hazards with generous, explicit clear space. Platforms
-  // are optional scenery/routes; the continuous ground route is always available.
+  function beep(freq, duration = .09, type = "triangle", volume = .04, slide = 0) {
+    if (!soundOn) return; ensureAudio(); if (!audio) return;
+    const t = audio.currentTime, osc = audio.createOscillator(), gain = audio.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(slide, t + duration);
+    gain.gain.setValueAtTime(volume, t); gain.gain.exponentialRampToValueAtTime(.001, t + duration);
+    osc.connect(gain); gain.connect(audio.destination); osc.start(t); osc.stop(t + duration);
+  }
+
   function generateLevel(index) {
     const hazards = [], platforms = [];
     let x = 660;
@@ -83,16 +117,17 @@
       if (i % 3 === 1) platforms.push({ x: x - int(100, 160), y: FLOOR - int(95, 140), w: int(90, 150), moving: i % 2 === 1, phase: rand(0, Math.PI * 2) });
     }
     const finishX = x + 420;
-    const count = practice ? Math.min(5, Math.max(2, Math.floor(finishX / 1500))) : int(0, 2);
+    const checkpoints = [];
     const choices = [];
     for (let p = 950; p < finishX - 380; p += 700) choices.push(p + int(-120, 120));
-    const checkpoints = [];
+    const count = practice ? Math.min(5, Math.max(2, Math.floor(finishX / 1500))) : int(0, 2);
     while (checkpoints.length < count && choices.length) checkpoints.push(choices.splice(int(0, choices.length - 1), 1)[0]);
     checkpoints.sort((a, b) => a - b);
     return { theme: pick(THEMES), hazards, platforms, checkpoints, finishX, speed: SPEEDS[index] };
   }
 
   function resetDuck(x) { duck.x = x; duck.y = FLOOR - duck.h; duck.vy = 0; duck.grounded = true; duck.coyote = .12; duck.buffer = 0; duck.crouch = false; }
+
   function startLevel(index) {
     ensureAudio(); course = index; level = generateLevel(index); deathsThisRun = 0; checkpointIndex = 0; cameraX = 0; runCounted = false; particles = [];
     resetDuck(90); state = "playing"; $("#overlay").classList.add("hidden");
@@ -101,6 +136,7 @@
     $("#practiceLabel").textContent = `Practice mode: ${practice ? "on" : "off"}`;
     $("#progressBar").style.width = "0%"; updateStats();
   }
+
   function showOverlay(kind, title, message) {
     $("#overlay").classList.remove("hidden"); $("#overlayTitle").innerHTML = title; $("#overlayMessage").textContent = message;
     const menu = kind === "menu";
@@ -109,42 +145,51 @@
     $("#continueButton").textContent = kind === "paused" ? "Resume run" : "Back to courses";
     updateStats();
   }
+
   function backToMenu() {
     if (state === "playing" || state === "paused") { save.rageQuits++; writeSave(); }
     state = "menu"; level = null; $("#levelName").textContent = "Ready?"; $("#checkpointLabel").textContent = "Checkpoints: —";
     $("#progressBar").style.width = "0%"; showOverlay("menu", "DUCK RUN <span>2D</span>", "Pick a course, learn its patterns, and keep hopping. Every run gets a fresh layout.");
   }
+
   function resume() { state = "playing"; $("#overlay").classList.add("hidden"); }
+
   function pause() {
     if (state === "playing") { state = "paused"; showOverlay("paused", "PAUSED", "Take a breath. Your run is waiting right here."); }
     else if (state === "paused") resume();
   }
+
   function restart() {
     if (!level || (state !== "playing" && state !== "paused")) return;
     const x = checkpointIndex ? level.checkpoints[checkpointIndex - 1] + 30 : 90;
     resetDuck(x); cameraX = Math.max(0, x - 250); particles = []; state = "playing"; $("#overlay").classList.add("hidden");
   }
+
   function jump() {
     if (state === "menu") { startLevel(0); return; }
     if (state === "paused") { resume(); return; }
     if (state === "finish") { backToMenu(); return; }
     if (state === "playing") duck.buffer = .14;
   }
+
   function particlesAt(x, y, color, count = 12) {
     for (let i = 0; i < count; i++) particles.push({ x, y, vx: rand(-150, 150), vy: rand(-250, 20), size: rand(3, 7), life: rand(.35, .75), max: .75, color });
   }
+
   function die() {
     if (state !== "playing") return;
     beep(170, .15, "sawtooth", .04, 65); deathsThisRun++; save.totalDeaths++; save.courses[course].deaths++; writeSave();
     showToast(`☠ ${pick(DEATH_QUOTES)}`); particlesAt(duck.x + 20, duck.y + 15, "#ff6b91", 14);
     const x = checkpointIndex ? level.checkpoints[checkpointIndex - 1] + 30 : 90; resetDuck(x); cameraX = Math.max(0, x - 250);
   }
+
   function win() {
     if (state !== "playing" || runCounted) return;
     runCounted = true; state = "finish"; save.wins++; save.courses[course].wins++; writeSave();
-    beep(440, .12); setTimeout(() => beep(590, .12), 100); setTimeout(() => beep(740, .2), 210);
+    beep(440, .12, "triangle", .045); setTimeout(() => beep(590, .12, "triangle", .045), 100); setTimeout(() => beep(740, .2, "triangle", .05), 210);
     particlesAt(duck.x + 30, FLOOR - 50, "#ffe36c", 36); showOverlay("finish", "COURSE CLEAR!", pick(WELL_DONE));
   }
+
   function platformY(p, time) { return p.y + (p.moving ? Math.sin(time / 650 + p.phase) * 17 : 0); }
 
   function update(dt, time) {
@@ -162,8 +207,6 @@
       beep(480, .09, "square", .025, 760); particlesAt(duck.x + 18, duck.y + duck.h, "#fff0a0", 4);
     }
 
-    // The duck auto-runs. A brakes and D accelerates; both are useful for
-    // adjusting approach timing without replacing the responsive jump controls.
     const pace = held.has("KeyA") ? .68 : held.has("KeyD") ? 1.28 : 1;
     const previousBottom = duck.y + duck.h;
     duck.x += level.speed * pace * dt;
@@ -193,7 +236,27 @@
     $("#levelDeaths").textContent = deathsThisRun;
   }
 
-  function rr(x, y, w, h, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); }
+  function roundedRect(x, y, w, h, r, color) {
+    if (typeof ctx.roundRect === "function") {
+      ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill();
+      return;
+    }
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+    ctx.lineTo(x + radius, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   function drawBackground(theme, time) {
     ctx.fillStyle = theme.sky; ctx.fillRect(0, 0, W, H);
     ctx.globalAlpha = .15; ctx.fillStyle = "#fff"; for (let y = 52; y < 230; y += 42) ctx.fillRect(0, y, W, 2); ctx.globalAlpha = 1;
@@ -201,6 +264,7 @@
     ctx.fillStyle = theme.far; for (let i = -1; i < 8; i++) { const x = i * 190 - cameraX * .23 % 190; ctx.beginPath(); ctx.ellipse(x + 80, 380, 135, 95, 0, Math.PI, 0); ctx.fill(); }
     ctx.fillStyle = theme.hill; for (let i = -1; i < 9; i++) { const x = i * 150 - cameraX * .45 % 150; ctx.beginPath(); ctx.ellipse(x + 75, 414, 108, 66, 0, Math.PI, 0); ctx.fill(); }
   }
+
   function drawGround(theme, time) {
     ctx.fillStyle = theme.ground; ctx.fillRect(0, FLOOR, W, H - FLOOR); ctx.fillStyle = theme.edge; ctx.fillRect(0, FLOOR, W, 9);
     const start = Math.floor(cameraX / 80) * 80;
@@ -214,6 +278,7 @@
       if (h.type === "vanish") { ctx.globalAlpha = .25 + (Math.sin(time / 380 + h.phase) + 1) * .28; ctx.fillStyle = "#fff"; ctx.fillRect(x, FLOOR - 5, h.w, 5); ctx.globalAlpha = 1; }
     }
   }
+
   function drawWorld(theme, time) {
     if (!level) return;
     for (const h of level.hazards) {
@@ -226,24 +291,29 @@
         for (let k = 0; k < h.w; k += 18) ctx.fillRect(x + k + 2, FLOOR - 5, Math.min(13, h.w - k), 5); ctx.globalAlpha = 1;
       }
     }
-    for (const p of level.platforms) { const x = p.x - cameraX; if (x + p.w < 0 || x > W) continue; const y = platformY(p, time); rr(x, y, p.w, 15, 5, "#3b3972"); rr(x, y, p.w, 6, 3, theme.accent); }
+    for (const p of level.platforms) { const x = p.x - cameraX; if (x + p.w < 0 || x > W) continue; const y = platformY(p, time); roundedRect(x, y, p.w, 15, 5, "#3b3972"); roundedRect(x, y, p.w, 6, 3, theme.accent); }
     level.checkpoints.forEach((cp, i) => { const x = cp - cameraX; if (x < -40 || x > W + 40) return; ctx.fillStyle = i < checkpointIndex ? "#9ff3bb" : "#fff4d2"; ctx.fillRect(x, FLOOR - 52, 5, 52); ctx.fillStyle = i < checkpointIndex ? "#70e1a1" : "#ff79ad"; ctx.beginPath(); ctx.moveTo(x + 5, FLOOR - 50); ctx.lineTo(x + 33, FLOOR - 42); ctx.lineTo(x + 5, FLOOR - 34); ctx.closePath(); ctx.fill(); });
     const finish = level.finishX - cameraX; if (finish > -60 && finish < W + 60) { ctx.fillStyle = "#fff4d2"; ctx.fillRect(finish, FLOOR - 115, 8, 115); ctx.fillStyle = "#ff70a9"; ctx.fillRect(finish + 8, FLOOR - 112, 48, 30); ctx.fillStyle = "#ffe36c"; ctx.fillRect(finish + 19, FLOOR - 103, 8, 8); }
   }
+
   function drawDuck() {
     const x = duck.x - cameraX, y = duck.y + (duck.grounded ? Math.sin(duck.anim) * 2 : 0);
     ctx.globalAlpha = duck.grounded ? .2 : .1; ctx.fillStyle = "#10142b"; ctx.beginPath(); ctx.ellipse(x + 20, FLOOR + 3, duck.grounded ? 22 : 14, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-    rr(x + 3, y + 10, 29, 23, 10, "#ffda57"); rr(x + 17, y + 1, 21, 21, 9, "#ffe66d");
+    roundedRect(x + 3, y + 10, 29, 23, 10, "#ffda57"); roundedRect(x + 17, y + 1, 21, 21, 9, "#ffe66d");
     ctx.fillStyle = "#ff9b3d"; ctx.beginPath(); ctx.moveTo(x + 35, y + 10); ctx.lineTo(x + 47, y + 14); ctx.lineTo(x + 35, y + 18); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#262344"; ctx.fillRect(x + 30, y + 7, 3, 4); ctx.fillStyle = "#fff"; ctx.fillRect(x + 31, y + 7, 1, 1); ctx.fillStyle = "#f2bc36"; ctx.fillRect(x + 20, y - 2, 7, 4);
     const kick = duck.grounded ? Math.sin(duck.anim * 1.7) * 3 : 1; ctx.fillStyle = "#ef783d"; ctx.fillRect(x + 10, y + 30, 8, 4 + kick); ctx.fillRect(x + 24, y + 30, 8, 4 - kick);
   }
+
   function draw(time) {
     const theme = level?.theme || THEMES[0]; drawBackground(theme, time); drawGround(theme, time); drawWorld(theme, time);
     if (level) drawDuck();
     for (const p of particles) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color; ctx.fillRect(p.x - cameraX, p.y, p.size, p.size); } ctx.globalAlpha = 1;
   }
-  function frame(time) { const dt = Math.min(.033, Math.max(0, (time - lastTime) / 1000)); lastTime = time; update(dt, time); draw(time); requestAnimationFrame(frame); }
+
+  function frame(time) {
+    const dt = Math.min(.033, Math.max(0, (time - lastTime) / 1000)); lastTime = time; update(dt, time); draw(time); requestAnimationFrame(frame);
+  }
 
   document.addEventListener("keydown", event => {
     if (["Space", "ArrowUp", "ArrowDown"].includes(event.code)) event.preventDefault();
@@ -256,6 +326,7 @@
     else if (event.code === "Digit2") startLevel(1);
     else if (event.code === "Digit3") startLevel(2);
   });
+
   document.addEventListener("keyup", event => held.delete(event.code));
   window.addEventListener("blur", () => { held.clear(); if (state === "playing") pause(); });
   canvas.addEventListener("pointerdown", () => { if (state === "paused") resume(); else jump(); });
@@ -265,12 +336,23 @@
   $("#practiceToggle").addEventListener("change", event => { practice = event.target.checked; $("#practiceLabel").textContent = `Practice mode: ${practice ? "on" : "off"}`; });
   $("#soundButton").addEventListener("click", () => { soundOn = !soundOn; $("#soundButton").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off"; $("#soundButton").setAttribute("aria-pressed", String(soundOn)); if (soundOn) beep(500, .07); });
   $("#exportButton").addEventListener("click", () => { const blob = new Blob([JSON.stringify({ ...save, exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "duck-run-2d-save.json"; a.click(); URL.revokeObjectURL(url); });
-  $("#importInput").addEventListener("change", async event => {
+  $("#importInput").addEventListener("change", async (event) => {
     const file = event.target.files?.[0]; if (!file) return;
-    try { const data = JSON.parse(await file.text()); if (!Array.isArray(data.courses)) throw new Error("That file is not a Duck Run save."); save = { version: 1, wins: Math.max(0, Number(data.wins) || 0), rageQuits: Math.max(0, Number(data.rageQuits) || 0), totalDeaths: Math.max(0, Number(data.totalDeaths) || 0), courses: NAMES.map((_, i) => ({ wins: Math.max(0, Number(data.courses[i]?.wins) || 0), deaths: Math.max(0, Number(data.courses[i]?.deaths) || 0) })) }; writeSave(); showToast("Save imported!"); }
-    catch (error) { showToast(error.message || "Could not import that save."); } event.target.value = "";
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.courses)) throw new Error("That file is not a Duck Run save.");
+      save = {
+        version: 1,
+        wins: Math.max(0, Number(data.wins) || 0),
+        rageQuits: Math.max(0, Number(data.rageQuits) || 0),
+        totalDeaths: Math.max(0, Number(data.totalDeaths) || 0),
+        courses: NAMES.map((_, i) => ({ wins: Math.max(0, Number(data.courses[i]?.wins) || 0), deaths: Math.max(0, Number(data.courses[i]?.deaths) || 0) }))
+      };
+      writeSave(); showToast("Save imported!");
+    } catch (error) { showToast(error.message || "Could not import that save."); }
+    event.target.value = "";
   });
-  $("#resetButton").addEventListener("click", () => { if (!confirm("Reset all saved stats? Export a backup first if you want to keep them.")) return; save = structuredClone(EMPTY_SAVE); writeSave(); showToast("Stats reset."); });
+  $("#resetButton").addEventListener("click", () => { if (!confirm("Reset all saved stats? Export a backup first if you want to keep them.")) return; save = clone(EMPTY_SAVE); writeSave(); showToast("Stats reset."); });
 
   updateStats(); $("#overlay").classList.remove("hidden"); requestAnimationFrame(frame);
 })();
