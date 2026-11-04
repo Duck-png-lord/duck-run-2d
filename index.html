@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171a3c">
+  <title>Duck Run 2D</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Duck Run 2D home">🦆 <span>DUCK RUN <b>2D</b></span></a>
+      <div class="top-actions">
+        <button id="soundButton" class="button button-quiet" type="button" aria-pressed="true">🔊 Sound on</button>
+        <button id="menuButton" class="button button-quiet" type="button">Main menu</button>
+      </div>
+    </header>
+
+    <section class="game-layout" aria-label="Duck Run game">
+      <div class="game-card">
+        <div class="hud">
+          <div class="hud-level"><span class="eyebrow">COURSE</span><strong id="levelName">Ready?</strong></div>
+          <div class="death-counter" aria-live="polite"><span>LEVEL DEATHS</span><strong id="levelDeaths">0</strong></div>
+          <div class="hud-progress"><span class="eyebrow">PROGRESS</span><div class="progress-track"><i id="progressBar"></i></div></div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="game" width="960" height="540" aria-label="Game canvas. Press Space or Up to jump."></canvas>
+          <div id="toast" class="toast" role="status" aria-live="polite"></div>
+          <section id="overlay" class="overlay" aria-live="polite">
+            <div class="overlay-card">
+              <div class="duck-mark">🦆</div>
+              <p class="eyebrow">A precision platformer with a quack-load of attitude</p>
+              <h1 id="overlayTitle">DUCK RUN <span>2D</span></h1>
+              <p id="overlayMessage" class="overlay-message">Pick a course, learn its patterns, and keep hopping. Every run gets a fresh layout.</p>
+              <div id="menuStats" class="menu-stats">
+                <div><strong id="statWins">0</strong><span>WINS</span></div>
+                <div><strong id="statRageQuits">0</strong><span>RAGE QUITS</span></div>
+                <div><strong id="statDeaths">0</strong><span>ALL-TIME DEATHS</span></div>
+              </div>
+              <div id="levelButtons" class="level-buttons">
+                <button class="button button-primary" data-level="0" type="button">Sunny Sprint <small>Easy-ish</small></button>
+                <button class="button button-primary" data-level="1" type="button">Berry Blitz <small>Spicy</small></button>
+                <button class="button button-primary" data-level="2" type="button">Neon Nightmare <small>Extra spicy</small></button>
+              </div>
+              <div class="overlay-controls"><span>SPACE / ↑ / W / TAP — JUMP</span><span>R — RESTART · ESC — PAUSE</span></div>
+              <button id="continueButton" class="button button-primary hidden" type="button">Back to courses</button>
+            </div>
+          </section>
+        </div>
+        <footer class="game-footer"><span id="checkpointLabel">Checkpoints: —</span><span id="practiceLabel">Practice mode: off</span><span>Fresh course every run</span></footer>
+      </div>
+
+      <aside class="side-card">
+        <p class="eyebrow">YOUR RUN HISTORY</p>
+        <h2>Duck stats</h2>
+        <div class="stat-list">
+          <div class="stat-row"><span>Wins</span><strong id="sideWins">0</strong></div>
+          <div class="stat-row"><span>Rage quits</span><strong id="sideRageQuits">0</strong></div>
+          <div class="stat-row"><span>Total deaths</span><strong id="sideDeaths">0</strong></div>
+        </div>
+        <p class="eyebrow level-record-title">DEATHS BY COURSE</p>
+        <div class="stat-list compact">
+          <div class="stat-row"><span>Sunny Sprint</span><strong id="courseDeaths0">0</strong></div>
+          <div class="stat-row"><span>Berry Blitz</span><strong id="courseDeaths1">0</strong></div>
+          <div class="stat-row"><span>Neon Nightmare</span><strong id="courseDeaths2">0</strong></div>
+        </div>
+        <div class="options">
+          <label class="toggle"><input id="practiceToggle" type="checkbox"><span class="switch"></span><span>Practice mode</span></label>
+          <p>Practice adds extra checkpoints. Main courses have no more than two.</p>
+        </div>
+        <div class="save-actions">
+          <button id="exportButton" class="button button-secondary" type="button">Export save</button>
+          <label class="button button-secondary import-label" for="importInput">Import save</label>
+          <input id="importInput" type="file" accept="application/json,.json" hidden>
+          <button id="resetButton" class="button button-danger" type="button">Reset stats</button>
+        </div>
+        <p class="save-note">Stats save automatically in this browser. Export a JSON backup to move them to another device.</p>
+      </aside>
+    </section>
+    <p class="mobile-tip">Tip: tap the game to jump. The duck runs for you!</p>
+  </main>
+  <script src="game.js" defer></script>
+</body>
+</html>
