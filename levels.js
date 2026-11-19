@@ -33,28 +33,53 @@ const levels = [
     }
 ];
 
-// Check collisions
-function checkCollisions() {
+// Draw spikes
+function drawSpikes() {
+    ctx.fillStyle = "#FF0000";
     obstacles.forEach(obstacle => {
-        if (
-            duck.x < obstacle.x + obstacle.width &&
-            duck.x + duck.width > obstacle.x &&
-            duck.y < obstacle.y &&
-            duck.y + duck.height > obstacle.y - obstacle.height
-        ) {
-            gameOver();
+        if (obstacle.type === "spike") {
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x, obstacle.y);
+            ctx.lineTo(obstacle.x + obstacle.width, obstacle.y);
+            ctx.lineTo(obstacle.x + obstacle.width/2, obstacle.y - obstacle.height);
+            ctx.closePath();
+            ctx.fill();
         }
     });
 }
 
-// Reset obstacles for new level
+// Draw platforms
+function drawPlatforms() {
+    ctx.fillStyle = "#555";
+    obstacles.forEach(obstacle => {
+        if (obstacle.type === "platform") {
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+    });
+}
+
+// Check collisions
+function checkCollisions() {
+    obstacles.forEach(obstacle => {
+        if (obstacle.type === "spike") {
+            if (duck.x < obstacle.x + obstacle.width &&
+                duck.x + duck.width > obstacle.x &&
+                duck.y < obstacle.y &&
+                duck.y + duck.height > obstacle.y - obstacle.height) {
+                gameOver();
+            }
+        }
+    });
+}
+
+// Reset obstacles
 function resetObstacles() {
-    obstacles = [...levels[level - 1].obstacles];
+    obstacles = [...levels[level-1].obstacles];
 }
 
 // Game over
 function gameOver() {
     gameActive = false;
-    finalScoreDisplay.textContent = score;
+    finalScoreDisplay.textContent = Math.floor(score);
     gameOverScreen.classList.remove("hidden");
 }
