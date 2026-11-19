@@ -15,7 +15,7 @@ body {
 
 #game-canvas {
     display: block;
-    background: #000;
+    background: linear-gradient(to bottom, #1a1a2e, #16213e);
 }
 
 #ui {
@@ -76,11 +76,6 @@ body {
 #fullscreen-btn:hover {
     background: #555;
 }
-
-.hidden {
-    display: none;
-}
-
 
 .hidden {
     display: none;
