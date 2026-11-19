@@ -14,10 +14,9 @@ function drawBoss() {
     ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
 }
 
-// Boss movement
+// Update boss position
 function updateBoss() {
     boss.x += boss.speed * boss.direction;
-
     if (boss.x <= 0 || boss.x + boss.width >= canvas.width) {
         boss.direction *= -1;
     }
@@ -25,12 +24,10 @@ function updateBoss() {
 
 // Check boss collision
 function checkBossCollision() {
-    if (
-        duck.x < boss.x + boss.width &&
+    if (duck.x < boss.x + boss.width &&
         duck.x + duck.width > boss.x &&
         duck.y < boss.y + boss.height &&
-        duck.y + duck.height > boss.y
-    ) {
+        duck.y + duck.height > boss.y) {
         gameOver();
     }
 }
