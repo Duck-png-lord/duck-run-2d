@@ -33,21 +33,6 @@ const levels = [
     }
 ];
 
-// Draw obstacles
-function drawObstacles() {
-    obstacles.forEach(obstacle => {
-        if (obstacle.type === "spike") {
-            ctx.fillStyle = "#FF0000";
-            ctx.beginPath();
-            ctx.moveTo(obstacle.x, obstacle.y);
-            ctx.lineTo(obstacle.x + obstacle.width, obstacle.y);
-            ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y - obstacle.height);
-            ctx.closePath();
-            ctx.fill();
-        }
-    });
-}
-
 // Check collisions
 function checkCollisions() {
     obstacles.forEach(obstacle => {
