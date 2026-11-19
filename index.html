@@ -1,86 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171a3c">
-  <title>Duck Run 2D</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Run 2D: Geometry Dash Edition</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="Duck Run 2D home">🦆 <span>DUCK RUN <b>2D</b></span></a>
-      <div class="top-actions">
-        <button id="soundButton" class="button button-quiet" type="button" aria-pressed="true">🔊 Sound on</button>
-        <button id="menuButton" class="button button-quiet" type="button">Main menu</button>
-      </div>
-    </header>
-
-    <section class="game-layout" aria-label="Duck Run game">
-      <div class="game-card">
-        <div class="hud">
-          <div class="hud-level"><span class="eyebrow">CURRENT RUN</span><strong id="levelName">Ready?</strong></div>
-          <div class="death-counter" aria-live="polite"><span>RUN DEATHS</span><strong id="levelDeaths">0</strong></div>
-          <div class="hud-progress"><div class="progress-label"><span class="eyebrow">COURSE PROGRESS</span><strong id="progressText">0%</strong></div><div class="progress-track"><i id="progressBar"></i></div></div>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="game" width="960" height="540" aria-label="Duck Run game. Space, W, Up Arrow, or tap to jump. A and D adjust speed."></canvas>
-          <div id="toast" class="toast" role="status" aria-live="polite"></div>
-          <section id="overlay" class="overlay" aria-live="polite">
-            <div class="overlay-card">
-              <div class="duck-mark">🦆</div>
-              <p class="eyebrow">A precision platformer with a quack-load of attitude</p>
-              <h1 id="overlayTitle">DUCK RUN <span>2D</span></h1>
-              <p id="overlayMessage" class="overlay-message">Tiny duck. Huge course. How far can you run?</p>
-              <div id="menuStats" class="menu-stats">
-                <div><strong id="statWins">0</strong><span>WINS</span></div>
-                <div><strong id="statRageQuits">0</strong><span>RAGE QUITS</span></div>
-                <div><strong id="statDeaths">0</strong><span>ALL-TIME DEATHS</span></div>
-              </div>
-              <div id="menuHome" class="menu-home">
-                <button id="newGameButton" class="button button-new" type="button">NEW GAME <small>Build a course, then go!</small></button>
-                <div class="overlay-controls"><span>SPACE / W / ↑ / TAP — JUMP</span><span>A / D — SLOW / BOOST · R — RESTART · ESC — PAUSE</span></div>
-              </div>
-              <div id="setupPanel" class="setup-panel hidden">
-                <div class="setup-grid">
-                  <label class="setup-field"><span>DIFFICULTY</span><select id="difficultySelect"><option value="easy">Easy — fewer hazards, slower</option><option value="mid" selected>Mid — balanced challenge</option><option value="hard">Hard — more hazards, faster</option><option value="rage">RageQuit — FAST, lots of hazards</option></select></label>
-                  <label class="setup-field"><span>COURSE LENGTH</span><select id="lengthSelect"><option value="short">Short · ~45 seconds</option><option value="mid" selected>Mid · ~1.5 minutes</option><option value="long">Long · ~2.5 minutes</option><option value="ultra">ULTRA LONG · ~5 minutes</option></select></label>
-                </div>
-                <p id="setupHint" class="setup-hint">Every run gets a fresh, validated layout. Main mode uses up to 2 checkpoints.</p>
-                <div class="setup-actions"><button id="backButton" class="button button-secondary" type="button">Back</button><button id="createButton" class="button button-new" type="button">CREATE COURSE →</button></div>
-              </div>
-              <div id="badgeStrip" class="badge-strip"><span class="eyebrow">BADGES</span><div id="badgeList" class="badge-list"></div></div>
-              <button id="continueButton" class="button button-primary hidden" type="button">Back to courses</button>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui">
+            <div id="score">Score: 0</div>
+            <div id="level">Level: 1</div>
+            <div id="game-over" class="hidden">
+                <h1>Game Over!</h1>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <button id="restart">Play Again</button>
             </div>
-          </section>
+            <button id="fullscreen-btn">🔳 Fullscreen</button>
         </div>
-        <footer class="game-footer"><span id="checkpointLabel">Checkpoints: —</span><span id="modeLabel">Choose a course</span><span>Duck runs automatically!</span></footer>
-      </div>
-
-      <aside class="side-card">
-        <p class="eyebrow">YOUR RUN HISTORY</p>
-        <h2>Duck stats</h2>
-        <div class="stat-list">
-          <div class="stat-row"><span>Wins</span><strong id="sideWins">0</strong></div>
-          <div class="stat-row"><span>Rage quits</span><strong id="sideRageQuits">0</strong></div>
-          <div class="stat-row"><span>Total deaths</span><strong id="sideDeaths">0</strong></div>
-        </div>
-        <div class="options">
-          <label class="toggle"><input id="practiceToggle" type="checkbox"><span class="switch"></span><span>Practice mode</span></label>
-          <p>Practice adds extra checkpoints. Invulnerability flashes for half a second after respawning.</p>
-        </div>
-        <div class="save-actions">
-          <button id="exportButton" class="button button-secondary" type="button">Export save</button>
-          <label class="button button-secondary import-label" for="importInput">Import save</label>
-          <input id="importInput" type="file" accept="application/json,.json" hidden>
-          <button id="resetButton" class="button button-danger" type="button">Reset stats</button>
-        </div>
-        <p class="save-note">Stats and badges save automatically in this browser. Export a JSON backup to move them to another device.</p>
-      </aside>
-    </section>
-    <p class="mobile-tip">Tap the game to jump. Duck runs for you; use A/D or on-screen buttons to adjust pace.</p>
-  </main>
-  <script src="game.js" defer></script>
+    </div>
+    <script src="levels.js"></script>
+    <script src="boss.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
